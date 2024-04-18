@@ -101,6 +101,7 @@ export function setElementData<T extends Record<string, unknown> | object>(
  */
 export function getElementData<T extends Record<string, unknown>>(
   el: HTMLElement,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   scheme: Record<string, Function>
 ): T {
     const data: Partial<T> = {};
