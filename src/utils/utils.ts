@@ -1,9 +1,9 @@
 export function pascalToKebab(value: string): string {
-    return value.replace(/([a-z0–9])([A-Z])/g, "$1-$2").toLowerCase();
+    return value.replace(/([a-z0–9])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
 export function isSelector(x: any): x is string {
-    return (typeof x === "string") && x.length > 1;
+    return typeof x === 'string' && x.length > 1;
 }
 
 export function isEmpty(value: any): boolean {
@@ -12,7 +12,10 @@ export function isEmpty(value: any): boolean {
 
 export type SelectorCollection<T> = string | NodeListOf<Element> | T[];
 
-export function ensureAllElements<T extends HTMLElement>(selectorElement: SelectorCollection<T>, context: HTMLElement = document as unknown as HTMLElement): T[] {
+export function ensureAllElements<T extends HTMLElement>(
+  selectorElement: SelectorCollection<T>,
+  context: HTMLElement = document as unknown as HTMLElement
+): T[] {
     if (isSelector(selectorElement)) {
         return Array.from(context.querySelectorAll(selectorElement)) as T[];
     }
@@ -27,7 +30,10 @@ export function ensureAllElements<T extends HTMLElement>(selectorElement: Select
 
 export type SelectorElement<T> = T | string;
 
-export function ensureElement<T extends HTMLElement>(selectorElement: SelectorElement<T>, context?: HTMLElement): T {
+export function ensureElement<T extends HTMLElement>(
+  selectorElement: SelectorElement<T>,
+  context?: HTMLElement
+): T {
     if (isSelector(selectorElement)) {
         const elements = ensureAllElements<T>(selectorElement, context);
         if (elements.length > 1) {
@@ -44,35 +50,47 @@ export function ensureElement<T extends HTMLElement>(selectorElement: SelectorEl
     throw new Error('Unknown selector element');
 }
 
-export function cloneTemplate<T extends HTMLElement>(query: string | HTMLTemplateElement): T {
+export function cloneTemplate<T extends HTMLElement>(
+  query: string | HTMLTemplateElement
+): T {
     const template = ensureElement(query) as HTMLTemplateElement;
     return template.content.firstElementChild.cloneNode(true) as T;
 }
 
-export function bem(block: string, element?: string, modifier?: string): { name: string, class: string } {
+export function bem(
+  block: string,
+  element?: string,
+  modifier?: string
+): { name: string; class: string } {
     let name = block;
     if (element) name += `__${element}`;
     if (modifier) name += `_${modifier}`;
     return {
         name,
-        class: `.${name}`
+        class: `.${name}`,
     };
 }
 
-export function getObjectProperties(obj: object, filter?: (name: string, prop: PropertyDescriptor) => boolean): string[] {
+export function getObjectProperties(
+  obj: object,
+  filter?: (name: string, prop: PropertyDescriptor) => boolean
+): string[] {
     return Object.entries(
-        Object.getOwnPropertyDescriptors(
-            Object.getPrototypeOf(obj)
-        )
+      Object.getOwnPropertyDescriptors(Object.getPrototypeOf(obj))
     )
-        .filter(([name, prop]: [string, PropertyDescriptor]) => filter ? filter(name, prop) : (name !== 'constructor'))
-        .map(([name, prop]) => name);
+      .filter(([name, prop]: [string, PropertyDescriptor]) =>
+        filter ? filter(name, prop) : name !== 'constructor'
+      )
+      .map(([name, prop]) => name);
 }
 
 /**
  * Устанавливает dataset атрибуты элемента
  */
-export function setElementData<T extends Record<string, unknown> | object>(el: HTMLElement, data: T) {
+export function setElementData<T extends Record<string, unknown> | object>(
+  el: HTMLElement,
+  data: T
+) {
     for (const key in data) {
         el.dataset[key] = String(data[key]);
     }
@@ -81,7 +99,10 @@ export function setElementData<T extends Record<string, unknown> | object>(el: H
 /**
  * Получает типизированные данные из dataset атрибутов элемента
  */
-export function getElementData<T extends Record<string, unknown>>(el: HTMLElement, scheme: Record<string, Function>): T {
+export function getElementData<T extends Record<string, unknown>>(
+  el: HTMLElement,
+  scheme: Record<string, Function>
+): T {
     const data: Partial<T> = {};
     for (const key in el.dataset) {
         data[key as keyof T] = scheme[key](el.dataset[key]);
@@ -94,8 +115,7 @@ export function getElementData<T extends Record<string, unknown>>(el: HTMLElemen
  */
 export function isPlainObject(obj: unknown): obj is object {
     const prototype = Object.getPrototypeOf(obj);
-    return  prototype === Object.getPrototypeOf({}) ||
-        prototype === null;
+    return prototype === Object.getPrototypeOf({}) || prototype === null;
 }
 
 export function isBoolean(v: unknown): v is boolean {
@@ -107,12 +127,10 @@ export function isBoolean(v: unknown): v is boolean {
  * здесь не учтено много факторов
  * в интернет можно найти более полные реализации
  */
-export function createElement<
-    T extends HTMLElement
-    >(
-    tagName: keyof HTMLElementTagNameMap,
-    props?: Partial<Record<keyof T, string | boolean | object>>,
-    children?: HTMLElement | HTMLElement []
+export function createElement<T extends HTMLElement>(
+  tagName: keyof HTMLElementTagNameMap,
+  props?: Partial<Record<keyof T, string | boolean | object>>,
+  children?: HTMLElement | HTMLElement[]
 ): T {
     const element = document.createElement(tagName) as T;
     if (props) {
