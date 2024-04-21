@@ -7,21 +7,13 @@ import { AppState, CatalogChangeEvent } from './components/AppData';
 import { Page } from './components/common/page';
 import { Modal } from './components/common/modal';
 import { Basket } from './components/common/basket';
-import { Order } from './components/order';
+import { OrderForm } from './components/orderForm';
+import { ContactsForm } from './components/contactsForm';
 import  { EventEmitter } from './components/base/events';
 import { BasketItem, CatalogItem } from './components/common/product';
 import { Success } from './components/common/success';
 
-
-const events = new EventEmitter();
-const api = new WebLarekApi(API_URL);
-// Для отслеживания логов
-events.onAll(({ eventName, data }) => {
-	console.log(eventName, data);
-});
-
 // Все шаблоны
-
 const successOrderTemplate = ensureElement<HTMLTemplateElement>('#success');
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
@@ -30,21 +22,19 @@ const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
 const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
 const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
 
-// Модель данных приложения
-
+const events = new EventEmitter();
+const api = new WebLarekApi(API_URL);
 const appData = new AppState({}, events);
-
-// Глобальные контейнеры
-
 const page = new Page(document.body, events);
-const modal = new Modal(
-	ensureElement<HTMLElement>('#modal-container'),
-	events
-);
-
-// Переиспользуемые части интерфейса
+const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 const basket = new Basket(cloneTemplate(basketTemplate), events);
-let order: Order = null;
+const orderForm = new OrderForm(cloneTemplate(orderTemplate), events);
+const contactsForm = new ContactsForm(cloneTemplate(contactsTemplate), events);
+
+// Для отслеживания логов
+events.onAll(({ eventName, data }) => {
+	console.log(eventName, data);
+});
 
 // Бизнес логика
 
@@ -173,15 +163,21 @@ events.on(/(^order|^contacts):submit/, () => {
 events.on(Events.ORDER_CLEAR, () => {
 	appData.clearBasket();
 	appData.clearOrder();
+	orderForm.resetPaymentButtons();
 });
 
 // Изменилось состояние валидации формы
 events.on(Events.FORM_ERRORS_CHANGE, (errors: Partial<IOrder>) => {
 	const { email, phone, address, payment } = errors;
-	order.valid = !address && !email && !phone && !payment;
-	order.errors = Object.values(errors)
+	orderForm.valid = !address && !payment;
+	orderForm.errors = Object.values(errors)
 		.filter((i) => !!i)
-		.join('; ');
+		.join(', ');
+
+	contactsForm.valid = !email && !phone;
+	contactsForm.errors = Object.values(errors)
+		.filter((i) => !!i)
+		.join(', ');
 });
 
 // Изменилось одно из полей
@@ -194,24 +190,29 @@ events.on(
 
 // Открыть форму заказа
 events.on(Events.ORDER_OPEN, () => {
-	if (order) order = null;
-	const step = !appData.order.address && !appData.order.payment ? 0 : 1;
-	order = new Order(
-		cloneTemplate(!step ? orderTemplate : contactsTemplate),
-		events
-	);
-	const data = !step ? { address: '' } : { phone: '', email: '' };
-	modal.render({
-		content: order.render({
-			...data,
-			valid: false,
-			errors: [],
-		}),
-	});
+	if (!appData.order.address && !appData.order.payment) {
+		const data = { address: '' }
+		modal.render({
+			content: orderForm.render({
+				valid: false,
+				errors: [],
+				...data
+			}),
+		});
+	} else {
+		const data = { phone: '', email: '' }
+		modal.render({
+			content: contactsForm.render({
+				valid: false,
+				errors: [],
+				...data
+			}),
+		});
+	}
 });
 
 events.on(Events.SET_PAYMENT_METHOD, (data: { paymentType: string }) => {
-	appData.setOrderField('payment', data.paymentType);
+	appData.setOrderField('payment'	, data.paymentType);
 });
 
 // Блокируем прокрутку страницы если открыта модалка
@@ -229,6 +230,4 @@ events.on(Events.MODAL_CLOSE, () => {
 api
 	.getProducts()
 	.then(appData.setCatalog.bind(appData))
-	.catch((err) => {
-		console.error(err);
-	});
+	.catch(console.error);

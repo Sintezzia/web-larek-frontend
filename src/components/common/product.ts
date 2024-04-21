@@ -112,14 +112,19 @@ export class CatalogItem extends Product<CatalogItemStatus> {
 		this._image = ensureElement<HTMLImageElement>(`.card__image`, container);
 	}
 
+
+	toggleButton(state: boolean) {
+		this.setDisabled(this._button, state);
+	}
+
 	set status({ status }: CatalogItemStatus) {
 		if (this._button) {
 			if (this.price === null) {
 				this.setText(this._button, 'Недоступно');
-				this._button.disabled = true;
+				this.setDisabled(this._button, true);
 			} else {
 				this.setText(this._button, status ? 'Уже в корзине' : 'В корзину');
-				this._button.disabled = status;
+				this.toggleButton(status);
 			}
 		}
 	}

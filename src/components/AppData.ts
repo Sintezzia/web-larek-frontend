@@ -81,13 +81,28 @@ export class AppState extends Model<IAppState> {
 	}
 
 	validateOrder(field: keyof IOrder) {
-		const errors: typeof this.formErrors = {};
-		if (field !== 'address' && field !== 'payment') {
-			if (!this.order.email) errors.email = 'Необходимо указать email';
-			if (!this.order.phone) errors.phone = 'Необходимо указать телефон';
+		const errors: Partial<Record<keyof IOrder, string>> = {};
+
+		// Проверка для полей email и phone
+		if (field === 'email' || field === 'phone') {
+			const emailError = !this.order.email.match(/^\S+@\S+\.\S+$/)
+				? 'email'
+				: '';
+			const phoneError = !this.order.phone.match(/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$|^8\d{10}$/)
+				? 'телефон'
+				: '';
+
+			if (emailError && phoneError) {
+				errors.email = `Необходимо указать ${emailError} и ${phoneError}`;
+			} else if (emailError) {
+				errors.email = `Необходимо указать ${emailError}`;
+			} else if (phoneError) {
+				errors.phone = `Необходимо указать ${phoneError}`;
+			}
 		} else if (!this.order.address) errors.address = 'Необходимо указать адрес';
 		else if (!this.order.payment)
 			errors.address = 'Необходимо выбрать тип оплаты';
+
 		this.formErrors = errors;
 		this.events.emit(Events.FORM_ERRORS_CHANGE, this.formErrors);
 		return Object.keys(errors).length === 0;

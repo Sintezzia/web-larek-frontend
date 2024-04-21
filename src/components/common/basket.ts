@@ -29,17 +29,21 @@ export class Basket extends Component<IBasketView> {
 		this.items = [];
 	}
 
+	toggleButton(state: boolean) {
+		this.setDisabled(this._button, state);
+	}
+
 	set items(items: HTMLElement[]) {
 		if (items.length) {
 			this._list.replaceChildren(...items);
-			this._button.disabled = false;
+			this.setDisabled(this._button, false);
 		} else {
 			this._list.replaceChildren(
 				createElement<HTMLParagraphElement>('p', {
 					textContent: 'Корзина пуста',
 				})
 			);
-			this._button.disabled = true;
+			this.toggleButton(true);
 		}
 	}
 

@@ -20,9 +20,12 @@ export class Modal extends Component<IModalData> {
 		this._content = ensureElement<HTMLElement>('.modal__content', container);
 
 		this._closeButton.addEventListener('click', this.close.bind(this));
-		this.container.addEventListener('click', this.close.bind(this));
+		this.container.addEventListener('click', (event) => {
+			if (event.target === this.container) {
+				this.close();
+			}
+		});
 		this._content.addEventListener('click', (event) => event.stopPropagation());
-		document.addEventListener('keydown', this.handleKeyDown);
 }
 
 private handleKeyDown = (event: KeyboardEvent) => {
@@ -36,12 +39,13 @@ private handleKeyDown = (event: KeyboardEvent) => {
 	}
 
 	open() {
-		this.container.classList.add('modal_active');
+		this.toggleClass(this.container, 'modal_active', true);
 		this.events.emit('modal:open');
+		document.addEventListener('keydown', this.handleKeyDown);
 	}
 
 	close() {
-		this.container.classList.remove('modal_active');
+		this.toggleClass(this.container, 'modal_active', false);
 		this.content = null;
 		this.events.emit('modal:close');
 	}
