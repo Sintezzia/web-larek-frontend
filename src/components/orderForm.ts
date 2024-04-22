@@ -15,8 +15,8 @@ export class OrderForm extends Form<IOrder> {
 
 		this._inputAddress = container.querySelector<HTMLInputElement>('input[name="address"]');
 
-		this._buttonCard.addEventListener('click', () => this.togglePaymentMethod(this._buttonCard));
-		this._buttonCash.addEventListener('click', () => this.togglePaymentMethod(this._buttonCash));
+		this._buttonCard.addEventListener('click', () => this.togglePaymentMethod('card'));
+		this._buttonCash.addEventListener('click', () => this.togglePaymentMethod('cash'));
 	}
 
 	toggleCard(state: boolean = true) {
@@ -27,17 +27,18 @@ export class OrderForm extends Form<IOrder> {
 		this.toggleClass(this._buttonCash, 'button_alt-active', state);
 	}
 
-	togglePaymentMethod(button: HTMLButtonElement) {
-		const isActive = button.classList.contains('button_alt-active');
+	togglePaymentMethod(selectedPayment: string) {
+		const isCardActive = this._buttonCard.classList.contains('button_alt-active');
+		const isCashActive = this._buttonCash.classList.contains('button_alt-active');
 
-		this.toggleCard(false);
-		this.toggleCash(false);
-
-		if (!isActive) {
-			this.toggleClass(button, 'button_alt-active', true);
-			this.payment = button.name;
-		} else {
-			this.payment = null;
+		if (selectedPayment === 'card') {
+			this.toggleCard(!isCardActive);
+			this.payment = isCardActive ? null : 'card';
+			if (!isCardActive) this.toggleCash(false);
+		} else if (selectedPayment === 'cash') {
+			this.toggleCash(!isCashActive);
+			this.payment = isCashActive ? null : 'cash';
+			if (!isCashActive) this.toggleCard(false);
 		}
 	}
 

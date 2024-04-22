@@ -36,7 +36,7 @@ export class Basket extends Component<IBasketView> {
 	set items(items: HTMLElement[]) {
 		if (items.length) {
 			this._list.replaceChildren(...items);
-			this.setDisabled(this._button, false);
+			this.toggleButton(false);
 		} else {
 			this._list.replaceChildren(
 				createElement<HTMLParagraphElement>('p', {

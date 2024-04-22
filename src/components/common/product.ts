@@ -121,7 +121,7 @@ export class CatalogItem extends Product<CatalogItemStatus> {
 		if (this._button) {
 			if (this.price === null) {
 				this.setText(this._button, 'Недоступно');
-				this.setDisabled(this._button, true);
+				this.toggleButton(true);
 			} else {
 				this.setText(this._button, status ? 'Уже в корзине' : 'В корзину');
 				this.toggleButton(status);

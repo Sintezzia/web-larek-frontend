@@ -46,7 +46,7 @@ private handleKeyDown = (event: KeyboardEvent) => {
 
 	close() {
 		this.toggleClass(this.container, 'modal_active', false);
-		this.content = null;
+		document.removeEventListener('keydown', this.handleKeyDown);
 		this.events.emit('modal:close');
 	}
 
